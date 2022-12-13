@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:food_app/screens/login_screen.dart';
 import 'package:food_app/screens/splash_screen.dart';
 import 'package:get/get.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
   runApp(const App());
 }
 
@@ -16,8 +19,7 @@ class App extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.indigo,
       ),
-      home: SpalashScreen(),
+      home: LoginScreen(),
     );
   }
 }
-
