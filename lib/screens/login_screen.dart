@@ -250,6 +250,7 @@ class _LoginScreenState extends State<LoginScreen> {
           if (isSelcted) {
             SharedPref.savePrefarance(EMAILOR_PHONE, emailOrPhone.text);
             SharedPref.savePrefarance(PASSWORD, password.text);
+            SharedPref.savePrefarance(TOKEN, jsondata['access_token'].toString());
           }
 
           // // SharedPref().SetAuthToken(jsondata['access_token']);

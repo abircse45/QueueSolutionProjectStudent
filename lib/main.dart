@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:food_app/screens/home_screen.dart';
 import 'package:food_app/screens/login_screen.dart';
 import 'package:food_app/screens/splash_screen.dart';
 import 'package:get/get.dart';
@@ -19,7 +20,7 @@ class App extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.indigo,
       ),
-      home: LoginScreen(),
+      home: HomeScreen(),
     );
   }
 }
