@@ -41,7 +41,6 @@ class Cart {
       'initialPrice' : initialPrice,
       'productPrice' : productPrice,
       'quantity' : quantity,
-
       'image' : image,
       'unit' : unit,
     };

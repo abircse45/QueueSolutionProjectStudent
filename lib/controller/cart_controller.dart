@@ -1,46 +1,88 @@
-import 'package:food_app/database/database_helper.dart';
-import 'package:food_app/model/cart_model.dart';
 import 'package:get/get.dart';
 
-class CartController extends GetxController {
-  DBHelper _dbHelper = DBHelper();
+import '../database/database_helper.dart';
+import '../main.dart';
+import '../model/cart_model.dart';
+import '../screens/splash_screen.dart';
 
-  var _counter = 0.obs;
+class CartProvider extends GetxController {
+  DBHelper db = DBHelper();
+  int _counter = 0;
 
-  var _totalPrice = 0.0.obs;
+  double _totalPrice = 0.0;
 
-  late Future<List<Cart>> _cartData;
+  late Future<List<Cart>> _cart;
+  Future<List<Cart>> get cart => _cart;
 
-  Future<List<Cart>?> getCart() async {
-    return _cartData = _dbHelper.getCartList();
+
+  // getCartQuantity(int id){
+  //   int ? result = 0;
+  //   availableCart.forEach((element) {
+  //     print("ID___${element.productId}");
+  //     if(element.productId!.compareTo("$id")==0){
+  //       result = element.quantity;
+  //     }
+  //   });
+  //   return result!;
+  // }
+
+  getCartProductQuantity(int id) {
+    int? res = 0;
+    availabeCart!.forEach((element) {
+      print(element.productId?.compareTo("$id"));
+      if (element.productId?.compareTo("$id") == 0) {
+        res = element.quantity;
+      }
+    });
+    return res!;
+  }
+
+  Future<List<Cart>> getData() async {
+    _cart = db.getCartList();
+
+    return _cart;
   }
 
   void addTotalPrice(double productPrice) {
-    _totalPrice.value = _totalPrice.value + productPrice;
+    _totalPrice = _totalPrice + productPrice;
     update();
   }
 
-  void removeprice(double productPrice) {
-    _totalPrice.value = _totalPrice.value - productPrice;
+  void removeTotalPrice(double productPrice) {
+    _totalPrice = _totalPrice - productPrice;
     update();
   }
 
-  var items = 0.0.obs;
-
-  Future<double?> getTotalPrice() async {
-    await _dbHelper.getCartList().then((value) {
+  Future<double> getTotalPrice() async {
+    double items = 0;
+    await db.getCartList().then((value) {
       value.forEach((element) {
-        items.value += (element.productPrice * element.quantity!);
+        items += (element.productPrice * element.quantity!);
       });
-
-      _totalPrice = items;
     });
+
+    _totalPrice = items;
+
+    return _totalPrice;
   }
 
-  Future<int?> getCounter() async {
-    items.value = 0;
-    await _dbHelper.getCartList().then((value) {
-      _counter.value = value.length;
+  void addCounter() {
+    _counter++;
+    update();
+  }
+
+  void removerCounter() {
+    _counter--;
+    update();
+    getCounter();
+  }
+
+  Future<int> getCounter() async {
+    await db.getCartList().then((value) {
+      _counter = value.length;
+
     });
+
+    return _counter;
   }
 }
