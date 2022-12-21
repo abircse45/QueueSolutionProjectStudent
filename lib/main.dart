@@ -21,7 +21,7 @@ class App extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.indigo,
       ),
-      home: LoginScreen(),
+      home: SpalashScreen(),
     );
   }
 }

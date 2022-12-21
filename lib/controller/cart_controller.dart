@@ -7,7 +7,7 @@ import '../screens/splash_screen.dart';
 
 class CartProvider extends GetxController {
   DBHelper db = DBHelper();
-  int _counter = 0;
+  int counter = 0;
 
   double _totalPrice = 0.0;
 
@@ -67,22 +67,22 @@ class CartProvider extends GetxController {
   }
 
   void addCounter() {
-    _counter++;
+    counter++;
     update();
   }
 
   void removerCounter() {
-    _counter--;
+    counter--;
     update();
     getCounter();
   }
 
   Future<int> getCounter() async {
     await db.getCartList().then((value) {
-      _counter = value.length;
+      counter = value.length;
 
     });
 
-    return _counter;
+    return counter;
   }
 }

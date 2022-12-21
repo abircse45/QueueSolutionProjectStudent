@@ -218,7 +218,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (response.statusCode == 200) {
       var jsondata = jsonDecode(response.body);
+      print("Response__${response.body}");
       if (isSelcted) {
+        SharedPref.savePrefarance(TOKEN, jsondata["access_token"].toString());
+        SharedPref.savePrefarance(USERID, jsondata["user"]['id'].toString());
         SharedPref.savePrefarance(EMAILOR_PHONE, emailOrPhone.text);
         SharedPref.savePrefarance(PASSWORD, password.text);
       }

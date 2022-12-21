@@ -7,21 +7,27 @@ import '../screens/login_screen.dart';
 import '../session/key_text.dart';
 
 class SplashController extends GetxController {
-  // var token;
-  //
-  // getToken() async {
-  //   token = await SharedPref.getPrefarance(TOKEN)!;
-  //   update();
-  // }
+  String ? token;
 
-  @override
-  void onInit() {
-    //getToken();
-    super.onInit();
+  getToken() async {
+    token = await SharedPref.getPrefarance(TOKEN);
+    update();
   }
 
+
   @override
-  void onReady() {
+  void onReady() async {
+    await getToken();
+    if(token==null || token == ""){
+      Future.delayed(Duration(seconds: 5),(){
+        Get.offAll(LoginScreen());
+
+      });
+
+    }else{
+      Get.offAll(HomeScreen());
+    }
+
 
 
     super.onReady();

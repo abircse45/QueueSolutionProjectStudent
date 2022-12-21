@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:food_app/controller/cart_controller.dart';
 import 'package:food_app/database/database_helper.dart';
 import 'package:food_app/model/cart_model.dart';
+import 'package:food_app/screens/checkout_screen.dart';
 import 'package:food_app/utils/colors.dart';
 import 'package:get/get.dart';
 
@@ -251,7 +252,11 @@ class _CartScreenState extends State<CartScreen> {
                           ),
                           SizedBox(height: 8),
                           dataval!.isNotEmpty ?    ElevatedButton(
-                            onPressed: () {},
+                            onPressed: () {
+
+                              Get.to(CheckOutPage());
+
+                            },
                             child: Text(
                               "Checkout",
                               style: TextStyle(),

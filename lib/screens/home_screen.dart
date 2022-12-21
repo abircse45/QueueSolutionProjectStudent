@@ -3,12 +3,15 @@ import 'package:food_app/controller/cart_controller.dart';
 import 'package:food_app/controller/product_controller.dart';
 import 'package:food_app/controller/search_controller.dart';
 import 'package:food_app/database/database_helper.dart';
+import 'package:food_app/local/shared_data.dart';
 import 'package:food_app/model/cart_model.dart';
 import 'package:food_app/screens/cart_screen.dart';
 import 'package:food_app/screens/search_screen.dart';
+import 'package:food_app/screens/splash_screen.dart';
+import 'package:food_app/session/key_text.dart';
 import 'package:food_app/utils/colors.dart';
 import 'package:get/get.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -20,8 +23,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final ProductController _controller = Get.put(ProductController());
   final DBHelper dbHelper = DBHelper();
-   final SearchController _searchController = Get.put(SearchController());
-
+  final SearchController _searchController = Get.put(SearchController());
 
   List<int> _counter = [];
 
@@ -39,7 +41,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  String ? searchValue;
+  String? searchValue;
 
   final CartProvider cart = Get.put(CartProvider());
 
@@ -47,58 +49,77 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     dbHelper.getCartList();
     return Scaffold(
-      bottomNavigationBar: InkWell(
-        onTap: (){
-          Navigator.push(context, MaterialPageRoute(builder: (_)=> CartScreen()));
-
-        },
-        child: Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: Container(
-            decoration: BoxDecoration(
-              color: BG_COLOR
-            ),
-            height: 50,
-            width: double.infinity,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-
-                Padding(
-                  padding: const EdgeInsets.only(left: 18.0),
-                  child: Text("Total Price  : ",style: TextStyle(
-                    fontSize:20,fontWeight: FontWeight.bold,
-                    color: Colors.white
-                  ),),
-                ),
-               FutureBuilder<double>(
-                 future: cart.getTotalPrice(),
-                 builder: (_,snapshot){
-                   if(snapshot.hasData){
-                     return  Padding(
-                       padding: const EdgeInsets.only(right: 18.0),
-                       child: Text("BDT ${snapshot.data.toString()}",style: TextStyle(
-                           fontSize:20,fontWeight: FontWeight.bold,
-                           color: Colors.white
-                       ),),
-                     );
-                   }else{
-                     return Container();
-                   }
-                 },
+      bottomNavigationBar:
+     FutureBuilder(
+       future: cart.getCounter(),
+       builder: (_,snap){
+         if(snap.hasData){
+           if(snap.data==0){
+             return Container(height: 1,);
+           }else
+           return  InkWell(
+             onTap: () {
+               Navigator.push(
+                   context, MaterialPageRoute(builder: (_) => CartScreen()));
+             },
+             child: Padding(
+               padding: const EdgeInsets.all(12.0),
+               child: Container(
+                 decoration: BoxDecoration(
+                   color: BG_COLOR,
+                   borderRadius: BorderRadius.circular(20.0),
+                 ),
+                 height: 50,
+                 width: double.infinity,
+                 child: Row(
+                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                   children: [
+                     Padding(
+                       padding: const EdgeInsets.only(left: 18.0),
+                       child: Text(
+                         "Total Price  : ",
+                         style: TextStyle(
+                             fontSize: 20,
+                             fontWeight: FontWeight.bold,
+                             color: Colors.white),
+                       ),
+                     ),
+                     FutureBuilder<double>(
+                       future: cart.getTotalPrice(),
+                       builder: (_, snapshot) {
+                         if (snapshot.hasData) {
+                           return Padding(
+                             padding: const EdgeInsets.only(right: 18.0),
+                             child: Text(
+                               "BDT ${snapshot.data.toString()}",
+                               style: TextStyle(
+                                   fontSize: 20,
+                                   fontWeight: FontWeight.bold,
+                                   color: Colors.white),
+                             ),
+                           );
+                         } else {
+                           return Container();
+                         }
+                       },
+                     ),
+                   ],
+                 ),
                ),
-
-              ],
-            ),
-          ),
-        ),
-      ),
-      backgroundColor: Colors.grey[300],
+             ),
+           );
+         }else{
+           return Container();
+         }
+       },
+     ),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         actions: [
           InkWell(
-            onTap: (){
-              Navigator.push(context, MaterialPageRoute(builder: (_)=> CartScreen()));
+            onTap: () {
+              Navigator.push(
+                  context, MaterialPageRoute(builder: (_) => CartScreen()));
             },
             child: Stack(
               children: [
@@ -111,9 +132,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 FutureBuilder(
                   future: cart.getCounter(),
-                  builder: (_,snapshot){
-                    if(snapshot.hasData){
-                      return     Text(
+                  builder: (_, snapshot) {
+                    if (snapshot.hasData) {
+                      return Text(
                         "${snapshot.data.toString()}",
                         style: TextStyle(
                             fontSize: 19,
@@ -122,35 +143,55 @@ class _HomeScreenState extends State<HomeScreen> {
                       );
                     }
                     return Container();
-
                   },
                 ),
-
               ],
             ),
-          )
+          ),
+          IconButton(onPressed: () async{
+            SharedPreferences preferences = await SharedPreferences.getInstance();
+            await preferences.remove(TOKEN);
+            Get.offAll(SpalashScreen());
+            setState(() {
+
+            });
+
+          }, icon: Icon(Icons.logout),),
+
+
         ],
         backgroundColor: BG_COLOR,
         title: Text("Product"),
       ),
       body: Column(
         children: [
-
           Padding(
-            padding: const EdgeInsets.all(18.0),
-            child: TextField(
-              onTap: (){
-                Get.to(SearchScreen());
-              },
-
-              decoration: InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: "Search your product ...."
+            padding: const EdgeInsets.only(top: 25, bottom: 10),
+            child: Container(
+              width: 370,
+              height: 50,
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: BG_COLOR, //                   <--- border color
+                  width: 2.0,
+                ),
+                borderRadius: BorderRadius.circular(20.0),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.only(left: 10),
+                child: TextField(
+                  onTap: () {
+                    Get.to(SearchScreen());
+                  },
+                  decoration: InputDecoration(
+                      suffixIcon: Icon(Icons.search, color: BG_COLOR),
+                      border: InputBorder.none,
+                      hintText: "Search your product ...."),
+                ),
               ),
             ),
           ),
           Expanded(
-
             child: Obx(() {
               if (_controller.loader.value) {
                 return Center(
@@ -159,8 +200,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 );
               } else {
-                return
-                  GridView.builder(
+                return GridView.builder(
                     itemCount: _controller.productlist.value.popular!.length,
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
@@ -170,11 +210,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       var data = _controller.productlist.value.popular![index];
                       _counter.add(0);
 
-
                       return Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: Card(
-                          elevation: 3,
+                          color: Colors.indigo.shade50,
+                          elevation: 2,
                           child: InkWell(
                             onTap: () {},
                             child: Column(
@@ -199,17 +239,20 @@ class _HomeScreenState extends State<HomeScreen> {
                                     overflow: TextOverflow.ellipsis,
                                     maxLines: 2,
                                     style: TextStyle(
-                                        fontSize: 15, fontWeight: FontWeight.bold),
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold),
                                   ),
                                 ),
                                 Padding(
-                                  padding: const EdgeInsets.only(left: 15, top: 10),
+                                  padding:
+                                  const EdgeInsets.only(left: 15, top: 10),
                                   child: Text(
                                     "BDT ${data.price.toString()}",
                                     overflow: TextOverflow.ellipsis,
                                     maxLines: 2,
                                     style: TextStyle(
-                                        fontSize: 15, fontWeight: FontWeight.bold),
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold),
                                   ),
                                 ),
                                 Row(
@@ -217,113 +260,109 @@ class _HomeScreenState extends State<HomeScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
                                     Padding(
-                                      padding:
-                                      const EdgeInsets.only(left: 8.0, right: 9),
-                                      child: InkWell(
-                                        onTap: () {
-                                          decrement(index);
-                                          dbHelper
-                                              .insert(Cart(
-                                            productId: data.id.toString(),
-                                            productName: data.name,
-                                            initialPrice: data.price,
-                                            productPrice: data.price!,
-                                            quantity:
-                                            cart.getCartProductQuantity(data.id!) - 1,
-                                            image: data.image!.thumbnail,
-                                            unit: data.unit,
-                                          ))
-                                              .then((valuedddd) {
+                                      padding: const EdgeInsets.only(top: 10),
+                                      child: Container(
+                                        width: 125,
+                                        height: 35,
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                            color: Colors
+                                                .blueAccent, //                   <--- border color
+                                            width: 2.0,
+                                          ),
+                                          borderRadius:
+                                          BorderRadius.circular(10.0),
+                                        ),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                          MainAxisAlignment.spaceEvenly,
+                                          children: [
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                  bottom: 9),
+                                              child: InkWell(
+                                                onTap: () {
+                                                  decrement(index);
+                                                  dbHelper
+                                                      .insert(Cart(
+                                                    productId:
+                                                    data.id.toString(),
+                                                    productName: data.name,
+                                                    initialPrice: data.price,
+                                                    productPrice: data.price!,
+                                                    quantity:
+                                                    cart.getCartProductQuantity(
+                                                        data.id!) -
+                                                        1,
+                                                    image:
+                                                    data.image!.thumbnail,
+                                                    unit: data.unit,
+                                                  ))
+                                                      .then((valuedddd) {
+                                                    cart.addTotalPrice(
+                                                        data.price!.toDouble());
+                                                    cart.addCounter();
+                                                    setState(() {});
+                                                  }).onError(
+                                                          (error, stackTrace) {
+                                                        print("Error=========");
+                                                        print(
+                                                            "Error ${error.toString()}");
+                                                      });
 
-                                            cart.addTotalPrice(
-                                                data.price!.toDouble());
-                                            cart.addCounter();
-                                            setState(() {
-
-                                            });
-                                          }).onError((error, stackTrace) {
-                                            print("Error=========");
-                                            print("Error ${error.toString()}");
-                                          });
-
-                                          setState(() {
-
-                                          });
-                                        },
-                                        child: Container(
-                                            padding: EdgeInsets.all(6),
-                                            //  height: 35,
-                                            // width: double.infinity,
-                                            decoration: BoxDecoration(
-                                              color: Colors.indigo,
-                                              borderRadius:
-                                              BorderRadius.circular(10.0),
-                                            ),
-                                            child: Padding(
-                                              padding:
-                                              const EdgeInsets.only(bottom: 8.0),
-                                              child: Icon(
-                                                Icons.minimize,
-                                                color: Colors.white,
+                                                  setState(() {});
+                                                },
+                                                child: Icon(
+                                                  Icons.minimize,
+                                                  size: 22,
+                                                  color: Colors.blueAccent,
+                                                ),
                                               ),
-                                            )),
-                                      ),
-                                    ),
-                                    Text(
-                                      "${cart.getCartProductQuantity(data!.id!)}",
-
-                                      style: TextStyle(
-                                          fontSize: 18, color: Colors.black),
-                                    ),
-                                    Padding(
-                                      padding:
-                                      const EdgeInsets.only(left: 18.0, right: 9),
-                                      child: InkWell(
-                                        onTap: () {
-                                          increment(index);
-                                          dbHelper
-                                              .insert(Cart(
-                                            productId: data.id.toString(),
-                                            productName: data.name,
-                                            initialPrice: data.price,
-                                            productPrice: data.price!,
-                                            quantity:
-                                            cart.getCartProductQuantity(data.id!) + 1,
-                                            image: data.image!.thumbnail,
-                                            unit: data.unit,
-                                          ))
-                                              .then((valuedddd) {
-
-                                            cart.addTotalPrice(
-                                                data.price!.toDouble());
-                                            cart.addCounter();
-                                            setState(() {
-
-                                            });
-                                          }).onError((error, stackTrace) {
-                                            print("Error=========");
-                                            print("Error ${error.toString()}");
-                                          });
-
-                                          setState(() {
-
-                                          });
-                                        },
-                                        child: Container(
-                                            padding: EdgeInsets.all(6),
-                                            //  height: 35,
-                                            // width: double.infinity,
-                                            decoration: BoxDecoration(
-                                              color: Colors.indigo,
-                                              borderRadius:
-                                              BorderRadius.circular(10.0),
                                             ),
-                                            child: Icon(
-                                              Icons.add,
-                                              color: Colors.white,
-                                            )),
+                                            Text(
+                                              "${cart.getCartProductQuantity(data!.id!)}",
+                                              style: TextStyle(
+                                                  fontSize: 21,
+                                                  color: Colors.blueAccent),
+                                            ),
+                                            InkWell(
+                                              onTap: () {
+                                                increment(index);
+                                                dbHelper
+                                                    .insert(Cart(
+                                                  productId: data.id.toString(),
+                                                  productName: data.name,
+                                                  initialPrice: data.price,
+                                                  productPrice: data.price!,
+                                                  quantity:
+                                                  cart.getCartProductQuantity(
+                                                      data.id!) +
+                                                      1,
+                                                  image: data.image!.thumbnail,
+                                                  unit: data.unit,
+                                                ))
+                                                    .then((valuedddd) {
+                                                  cart.addTotalPrice(
+                                                      data.price!.toDouble());
+                                                  cart.addCounter();
+                                                  setState(() {});
+                                                }).onError((error, stackTrace) {
+                                                  print("Error=========");
+                                                  print(
+                                                      "Error ${error.toString()}");
+                                                });
+                                                setState(() {});
+                                              },
+                                              child: Icon(
+                                                Icons.add,
+                                                size: 20,
+                                                color: Colors.blueAccent,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                    ),
+                                    )
                                   ],
                                 ),
                               ],
@@ -331,9 +370,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                       );
-
-
-
                     });
               }
             }),

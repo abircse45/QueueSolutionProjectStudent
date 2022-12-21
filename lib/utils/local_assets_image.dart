@@ -1,1 +1,1 @@
- const SPLASH_IMAGE = "assets/images/splash.jpg";
+ const SPLASH_IMAGE = "assets/images/logo.jpeg";

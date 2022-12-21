@@ -22,7 +22,7 @@ class SpalashScreen extends StatelessWidget {
             decoration: BoxDecoration(
                 image: DecorationImage(
                   image: AssetImage(SPLASH_IMAGE),
-                  fit: BoxFit.cover
+                  fit: BoxFit.contain
                 )),
           );
         },
