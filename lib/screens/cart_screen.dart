@@ -106,56 +106,124 @@ class _CartScreenState extends State<CartScreen> {
                                             fontSize: 18,
                                           ),
                                         ),
-                                        Container(
-                                          child: Row(
-                                            mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                            children: <Widget>[
-                                              Text(
-                                                "${data.productPrice}",
-                                                style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 18,
+                                        Text(
+                                          "BDT : ${data.productPrice}",
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 18,
+                                          ),
+                                        ),
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.end,
+                                          crossAxisAlignment: CrossAxisAlignment.end,
+                                          children: [
+                                            Padding(
+                                              padding: const EdgeInsets.only(top: 10),
+                                              child: Container(
+                                                width: 125,
+                                                height: 35,
+                                                decoration: BoxDecoration(
+                                                  border: Border.all(
+                                                    color: Colors
+                                                        .blueAccent, //                   <--- border color
+                                                    width: 2.0,
+                                                  ),
+                                                  borderRadius:
+                                                  BorderRadius.circular(10.0),
                                                 ),
-                                              ),
-                                              Padding(
-                                                padding: const EdgeInsets.all(8.0),
                                                 child: Row(
                                                   mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                                  crossAxisAlignment:
-                                                  CrossAxisAlignment.end,
-                                                  children: <Widget>[
-                                                    Icon(
-                                                      Icons.remove,
-                                                      size: 24,
-                                                      color: Color.fromARGB(
-                                                          255, 255, 255, 255),
-                                                    ),
-                                                    Container(
-                                                      color: Colors.grey.shade200,
+                                                  MainAxisAlignment.spaceEvenly,
+                                                  children: [
+                                                    Padding(
                                                       padding: const EdgeInsets.only(
-                                                          bottom: 2,
-                                                          right: 12,
-                                                          left: 12),
-                                                      child: Text(
-                                                        "${data.quantity}",
-                                                        style: TextStyle(
-                                                            color: Color.fromARGB(
-                                                                255, 55, 55, 55)),
+                                                          bottom: 9),
+                                                      child: InkWell(
+                                                        onTap: () {
+
+
+
+
+
+                                                          if(snapshot.data![index].quantity! > 1){
+
+
+                                                            int quantity = snapshot.data![index].quantity!;
+                                                            quantity--;
+                                                            _dbHelper.updateQuantity(Cart(
+                                                              productId: snapshot.data![index].productId,
+                                                              productName: snapshot.data![index].productName,
+                                                              initialPrice: snapshot.data![index].productPrice,
+                                                              productPrice: snapshot.data![index].productPrice,
+                                                              quantity: quantity,
+                                                              image: snapshot.data![index].image,
+                                                              unit: snapshot.data![index].unit,
+                                                            )).then((value) {
+                                                              cart.addTotalPrice(snapshot.data![index].productPrice.toDouble());
+
+                                                            });
+                                                          }else{
+
+                                                              _dbHelper.delete(data.productId!);
+
+                                                              cart.removerCounter();
+                                                              cart.removeTotalPrice(data.productPrice!.toDouble());
+                                                              setState(() {
+
+                                                              });
+
+
+                                                          }
+
+
+
+
+
+                                                          setState(() {});
+                                                        },
+                                                        child: Icon(
+                                                          Icons.minimize,
+                                                          size: 22,
+                                                          color: Colors.blueAccent,
+                                                        ),
                                                       ),
                                                     ),
-                                                    Icon(
-                                                      Icons.add,
-                                                      size: 24,
-                                                      color: Color.fromARGB(
-                                                          255, 255, 255, 255),
-                                                    )
+                                                    Text(
+                                                      "${snapshot.data![index].quantity}",
+                                                      style: TextStyle(
+                                                          fontSize: 21,
+                                                          color: Colors.blueAccent),
+                                                    ),
+                                                    InkWell(
+                                                      onTap: () {
+                                                        int quantity = snapshot.data![index].quantity!;
+                                                        quantity++;
+                                                        _dbHelper.updateQuantity(Cart(
+                                                            productId: snapshot.data![index].productId,
+                                                            productName: snapshot.data![index].productName,
+                                                            initialPrice: snapshot.data![index].productPrice,
+                                                            productPrice: snapshot.data![index].productPrice,
+                                                            quantity: quantity,
+                                                            image: snapshot.data![index].image,
+                                                            unit: snapshot.data![index].unit,
+                                                        )).then((value) {
+                                                          cart.addTotalPrice(snapshot.data![index].productPrice.toDouble());
+
+                                                        });
+
+                                                        setState(() {});
+                                                      },
+                                                      child: Icon(
+                                                        Icons.add,
+                                                        size: 20,
+                                                        color: Colors.blueAccent,
+                                                      ),
+                                                    ),
                                                   ],
                                                 ),
-                                              )
-                                            ],
-                                          ),
+                                              ),
+                                            )
+                                          ],
                                         ),
                                       ],
                                     ),
