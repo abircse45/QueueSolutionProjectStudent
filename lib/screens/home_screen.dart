@@ -23,7 +23,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final ProductController _controller = Get.put(ProductController());
   final DBHelper dbHelper = DBHelper();
-  final SearchController _searchController = Get.put(SearchController());
+ // final SearchController _searchController = Get.put(SearchController());
 
   List<int> _counter = [];
 
@@ -117,9 +117,18 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         actions: [
           InkWell(
-            onTap: () {
-              Navigator.push(
+            onTap: () async {
+          var result = await    Navigator.push(
                   context, MaterialPageRoute(builder: (_) => CartScreen()));
+
+          if(result!=null){
+            if(result==true){
+              dbHelper.getCartList();
+              setState(() {
+
+              });
+            }
+          }
             },
             child: Stack(
               children: [
@@ -201,13 +210,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               } else {
                 return GridView.builder(
-                    itemCount: _controller.productlist.value.popular!.length,
+                    itemCount: _controller.productlist.value.data!.length,
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
                       childAspectRatio: 3 / 4,
                     ),
                     itemBuilder: (_, index) {
-                      var data = _controller.productlist.value.popular![index];
+                      var data = _controller.productlist.value.data![index];
                       _counter.add(0);
 
                       return Padding(
@@ -226,7 +235,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   borderRadius: BorderRadius.circular(13),
                                   child: Image.network(
                                     // height: MediaQuery.of(context).size.height*0.2,
-                                    data.image!.thumbnail.toString(),
+                                   "https://tajabajar.s3.ap-south-1.amazonaws.com/${data.thumbnailImage.toString()}",
                                     fit: BoxFit.fill,
                                     height: 100,
                                   ),
@@ -247,7 +256,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   padding:
                                   const EdgeInsets.only(left: 15, top: 10),
                                   child: Text(
-                                    "BDT ${data.price.toString()}",
+                                    "BDT ${data.mainPriceWu.toString()}",
                                     overflow: TextOverflow.ellipsis,
                                     maxLines: 2,
                                     style: TextStyle(
@@ -288,19 +297,19 @@ class _HomeScreenState extends State<HomeScreen> {
                                                     productId:
                                                     data.id.toString(),
                                                     productName: data.name,
-                                                    initialPrice: data.price,
-                                                    productPrice: data.price!,
+                                                    initialPrice: data.mainPriceWu,
+                                                    productPrice: data.mainPriceWu!,
                                                     quantity:
                                                     cart.getCartProductQuantity(
                                                         data.id!) -
                                                         1,
                                                     image:
-                                                    data.image!.thumbnail,
-                                                    unit: data.unit,
+                                                    data.thumbnailImage,
+                                                    unit: "1"
                                                   ))
                                                       .then((valuedddd) {
                                                     cart.addTotalPrice(
-                                                        data.price!.toDouble());
+                                                        data.mainPriceWu!.toDouble());
                                                     cart.addCounter();
                                                     setState(() {});
                                                   }).onError(
@@ -332,18 +341,18 @@ class _HomeScreenState extends State<HomeScreen> {
                                                     .insert(Cart(
                                                   productId: data.id.toString(),
                                                   productName: data.name,
-                                                  initialPrice: data.price,
-                                                  productPrice: data.price!,
+                                                  initialPrice: data.mainPriceWu,
+                                                  productPrice: data.mainPriceWu!,
                                                   quantity:
                                                   cart.getCartProductQuantity(
                                                       data.id!) +
                                                       1,
-                                                  image: data.image!.thumbnail,
-                                                  unit: data.unit,
+                                                  image: data.thumbnailImage,
+                                                  unit: "",
                                                 ))
                                                     .then((valuedddd) {
                                                   cart.addTotalPrice(
-                                                      data.price!.toDouble());
+                                                      data.mainPriceWu!.toDouble());
                                                   cart.addCounter();
                                                   setState(() {});
                                                 }).onError((error, stackTrace) {

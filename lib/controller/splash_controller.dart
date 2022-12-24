@@ -10,7 +10,10 @@ class SplashController extends GetxController {
   String ? token;
 
   getToken() async {
-    token = await SharedPref.getPrefarance(TOKEN);
+     await MyPrefs.getToken().then((value) {
+      token = value;
+      update();
+    });
     update();
   }
 

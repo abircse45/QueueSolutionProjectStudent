@@ -1,9 +1,11 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:food_app/local/shared_data.dart';
+import 'package:food_app/model/login_model.dart';
 import 'package:food_app/model/register_model.dart';
 import 'package:food_app/screens/otp_screen.dart';
 import 'package:food_app/session/key_text.dart';
@@ -11,7 +13,9 @@ import 'package:food_app/utils/colors.dart';
 import 'package:food_app/utils/static_text.dart';
 import 'package:get/route_manager.dart';
 import 'package:http/http.dart' as http;
+import 'package:sms_autofill/sms_autofill.dart';
 
+import '../model/cart_model.dart';
 import 'home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -24,19 +28,17 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   bool loader = false;
   bool isSelcted = false;
+  late LoginResponse _loginRes;
+  bool isLoder = false;
+  bool isVisible = false;
+  String ? otp;
 
   final TextEditingController emailOrPhone = TextEditingController();
   final TextEditingController password = TextEditingController();
   final GlobalKey<FormState> key = GlobalKey<FormState>();
 
   void initialize() async {
-    if (await SharedPref.getPrefarance(REMEMBER_ME) == "true") {
-      isSelcted = true;
-      emailOrPhone.text = (await SharedPref.getPrefarance(EMAILOR_PHONE))!;
-      password.text = (await SharedPref.getPrefarance(PASSWORD))!;
-    } else {
-      isSelcted = false;
-    }
+
     setState(() {});
   }
 
@@ -56,220 +58,248 @@ class _LoginScreenState extends State<LoginScreen> {
         backgroundColor: BG_COLOR,
         title: Text("Login"),
       ),
-      body: SingleChildScrollView(
-        child: Form(
-          key: key,
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(left: 28.0, right: 28, top: 100),
-                child: Card(
-                  color: Colors.white,
-                  elevation: 2,
-                  child: TextFormField(
-                    validator: (value) {
-                      if (value!.isEmpty) {
-                        return "Please enter your email or phone";
-                      }
-                    },
-                    controller: emailOrPhone,
-                    decoration: InputDecoration(
-                        contentPadding: EdgeInsets.only(left: 14),
-                        border: InputBorder.none,
-                        hintText: "Email Or Phone",
-                        labelText: "Email Or Phone"),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 28.0, right: 28, top: 20),
-                child: Card(
-                  color: Colors.white,
-                  elevation: 2,
-                  child: TextFormField(
-                    validator: (value) {
-                      if (value!.isEmpty) {
-                        return "Please enter your password";
-                      }
-                    },
-                    controller: password,
-                    decoration: InputDecoration(
-                        contentPadding: EdgeInsets.only(left: 14),
-                        border: InputBorder.none,
-                        hintText: "Password",
-                        labelText: "Password"),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 18.0),
-                child: Row(
+      body:  Stack(
+        children: [
+
+          SizedBox(height: 40,),
+          Container(
+            width: double.infinity,
+            child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Checkbox(
-                      activeColor: Colors.indigo,
-                      value: isSelcted,
-                      onChanged: (value) {
-                        setState(() {
-                          isSelcted = value!;
-                         SharedPref.savePrefarance(REMEMBER_ME,
-                              value.toString());
-                          print("Value__$isSelcted");
-                        });
-                      },
+                    Padding(
+                      padding: const EdgeInsets.only(top: 140.0, bottom: 15),
+                      child: Container(
+                        width: 200,
+                        height: 200,
+                        child: Image.asset(
+                            'assets/images/logo.jpeg'),
+                      ),
                     ),
-                    // 01643376085
-                    InkWell(
-                      onTap: (){
-                        setState(() {
-                          isSelcted = !isSelcted;
-                        });
-                      },
-                      child: Text(
-                        "Remember me",
-                        style: TextStyle(fontSize: 18, color: Colors.black),
+
+                    Container(
+                      // width: ScreenWidth * (3 / 4),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+
+
+
+
+                          Padding(
+
+                            padding: const EdgeInsets.only(left: 24.0,right: 24,top: 10),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.grey,width: 1)
+                              ),
+                              child: Row(
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 8.0),
+                                    child: Image.asset("assets/images/logo.jpeg",height: 30,width: 30,fit: BoxFit.contain,),
+                                  ),
+                                  Expanded(
+                                    child: TextField(
+                                      keyboardType: TextInputType.phone,
+
+                                      controller: emailOrPhone,
+                                      onSubmitted: (val){
+                                        setState(() {
+                                          if(emailOrPhone.value.text.length==11){
+                                            FocusScope.of(context).unfocus();
+                                          }
+                                        });
+                                      },
+                                      onChanged: (val){
+                                        if(emailOrPhone.value.text.length==11){
+                                          FocusScope.of(context).unfocus();
+                                        }
+                                      },
+                                      decoration: InputDecoration(
+
+                                          contentPadding: EdgeInsets.only(top: 13,left: 12),
+                                          hintText: "Enter your mobile number",
+                                          helperStyle: TextStyle(fontSize: 10),
+                                          hintStyle: TextStyle(color: Colors.black),
+                                          suffixStyle: TextStyle(fontSize: 17,color: Colors.black),
+
+                                          prefixIcon: Padding(
+                                            padding: const EdgeInsets.only(left: 12.0,right: 8,top: 11),
+                                            child: Text("+88",style: TextStyle(fontSize: 17,color: Colors.grey[800]),
+
+
+                                            ),
+                                          ),
+                                          border: InputBorder.none
+
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+
+                          SizedBox(height: 15,),
+
+
+                          Visibility(
+                            visible: isVisible ,
+                            child
+                                :
+                            Padding(
+                              padding: const EdgeInsets.all(18.0),
+                              child: PinFieldAutoFill(
+
+                                decoration:BoxLooseDecoration(
+
+                                  textStyle: TextStyle(fontSize: 20, color: Colors.black),
+                                  gapSpace: 10.0,
+                                  strokeColorBuilder: FixedColorBuilder(Colors.black.withOpacity(0.3)),
+                                ), // UnderlineDecoration, BoxLooseDecoration or BoxTightDecoration see https://github.com/TinoGuo/pin_input_text_field for more info,
+                                currentCode: otp,// prefill with a code
+                                onCodeSubmitted: (code){
+                                  otp= code;
+
+                                },//code submitted callback
+                                onCodeChanged: (code){
+                                  otp = code;
+                                  //code changed callback
+                                },
+                                codeLength: 4,//code length, default 6
+                              ),
+                            ),
+                          ) ,
+
+
+                          SizedBox(height: 15,),
+
+
+                    isLoder ?    Center(
+                      child: CircularProgressIndicator(),
+                    )    :  Center(
+                              child: Padding(
+                              padding: const EdgeInsets.only(top: 30.0),
+                              child: Container(
+                                height: 45,
+                                decoration: BoxDecoration(
+                                    border: Border.all(
+                                        color: Colors.indigo, width: 1),
+                                    borderRadius: const BorderRadius.all(
+                                        Radius.circular(12.0))),
+                                child: ElevatedButton(
+
+                                  child: Text(
+                                    "Continue",
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600),
+                                  ),
+                                  onPressed: () {
+                                    checkAPI();
+                                  },
+                                ),
+                              ),
+                          ),
+                            )
+
+
+
+                        ],
                       ),
                     )
                   ],
-                ),
-              ),
-              SizedBox(
-                height: 30,
-              ),
-              loader
-                  ? Center(
-                      child: CircularProgressIndicator(
-                        color: Colors.indigo,
-                      ),
-                    )
-                  : isSelcted == true
-                      ? InkWell(
-                          onTap: () {
-                            if (key.currentState!.validate()) {
-                              login();
-                            }
-                          },
-                          child: Padding(
-                            padding:
-                                const EdgeInsets.only(left: 28.0, right: 28),
-                            child: Container(
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                color: Colors.indigo,
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              height: 45,
-                              width: double.infinity,
-                              child: Text(
-                                "Log in",
-                                style: TextStyle(
-                                    fontSize: 18, color: Colors.white),
-                              ),
-                            ),
-                          ),
-                        )
-                      : InkWell(
-                          onTap: () {
-                            if (key.currentState!.validate()) {
-                              login();
-                            }
-                          },
-                          child: Padding(
-                            padding:
-                                const EdgeInsets.only(left: 28.0, right: 28),
-                            child: Container(
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                color: Colors.grey,
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              height: 45,
-                              width: double.infinity,
-                              child: Text(
-                                "Log in",
-                                style: TextStyle(
-                                    fontSize: 18, color: Colors.white),
-                              ),
-                            ),
-                          ),
-                        ),
-            ],
-          ),
-        ),
+                )),
+          )
+        ],
       ),
     );
   }
-
-  Future login() async {
+  Future<void> checkAPI() async {
+    //EasyLoading.show(maskType: EasyLoadingMaskType.clear);
     setState(() {
-      loader = true;
+      isLoder = true;
     });
+    Map<String, String> jsonMap = {
 
-    var body = {
-      "email": "${emailOrPhone.text}",
-      "password": "${password.text}",
+      'phone': emailOrPhone.text,
+      'otp' : "${isVisible ? otp : ""}",
+
     };
-    print("Body ___$body");
 
-    var response = await http.post(
-      Uri.parse("https://bdraj.com/api/v2/auth/login"),
-      body: body,
-      headers: {"Accept": "application/json"},
-    );
+    try {
+      final response = await http.post(
+        Uri.parse("https://5taka.com/api/v2/phone/verify"),
+        headers: {
 
-    if (response.statusCode == 200) {
-      var jsondata = jsonDecode(response.body);
-      print("Response__${response.body}");
-      if (isSelcted) {
-        SharedPref.savePrefarance(TOKEN, jsondata["access_token"].toString());
-        SharedPref.savePrefarance(USERID, jsondata["user"]['id'].toString());
-        SharedPref.savePrefarance(EMAILOR_PHONE, emailOrPhone.text);
-        SharedPref.savePrefarance(PASSWORD, password.text);
+          "Accept": "application/json",
+        },
+        //     encoding: Encoding.getByName("utf-8"),
+        body: jsonMap,
+      );
+
+      _loginRes = loginResponseFromJson(response.body);
+
+
+
+
+      if (_loginRes.is_verified==true) {
+        MyPrefs.setToken(_loginRes.access_token.toString());
+        MyPrefs.setName(_loginRes.user!.name.toString());
+        MyPrefs.setId(_loginRes.user!.id.toString());
+        Get.offAll(HomeScreen());
+
+
+      }else if(_loginRes.otpsent==true){
+        // ToastComponent.showDialog("Otp Send SuccessFully", context,
+        //     gravity: Toast.CENTER, duration: Toast.LENGTH_LONG);
+        // AuthHelper().setUserData(_loginRes);
+        // MyPrefs.setToken(_loginRes.access_token);
+        // MyPrefs.setName(_loginRes.user.name);
+        setState(() {
+          isLoder = false;
+          isVisible=true;
+        });
+        MyPrefs.setToken(_loginRes.access_token.toString());
+        MyPrefs.setName(_loginRes.user!.name.toString());
+        MyPrefs.setId(_loginRes.user!.id.toString());
       }
-      log(response.body);
 
-      if (jsondata["result"] == false) {
+
+      else{
+
+
+        var error = json.decode(response.body);
+
+        print("ERROR___${error['errors']['phone'][0]}");
+
+        // ToastComponent.showDialog("${error['errors']['phone'][0]}", context,
+        //     gravity: Toast.CENTER, duration: Toast.LENGTH_LONG);
+
         Fluttertoast.showToast(
-            msg: "${jsondata["message"]}",
+            msg: "${error['errors']['phone'][0]}",
             toastLength: Toast.LENGTH_SHORT,
             gravity: ToastGravity.CENTER,
             timeInSecForIosWeb: 1,
             backgroundColor: Colors.red,
             textColor: Colors.white,
-            fontSize: 16.0);
+            fontSize: 16.0
+        );
+
+
         setState(() {
-          loader = false;
-        });
-      } else {
-        setState(() {
-          loader = false;
-          Fluttertoast.showToast(
-              msg: "${jsondata["message"]}",
-              toastLength: Toast.LENGTH_SHORT,
-              gravity: ToastGravity.CENTER,
-              timeInSecForIosWeb: 1,
-              backgroundColor: Colors.red,
-              textColor: Colors.white,
-              fontSize: 16.0);
-          if (isSelcted) {
-            SharedPref.savePrefarance(EMAILOR_PHONE, emailOrPhone.text);
-            SharedPref.savePrefarance(PASSWORD, password.text);
-            SharedPref.savePrefarance(TOKEN, jsondata['access_token'].toString());
-          }
-
-          // // SharedPref().SetAuthToken(jsondata['access_token']);
-          // SharedPref.setEmailOrPhone(jsondata["user"]['phone']);
-          // SharedPref().setPassword(password.text);
-          // // SharedPref().rememberMe(isSelcted);
-
-          Get.to(HomeScreen());
-
-          print("response__${response.body}");
+          isLoder = false;
         });
       }
-    } else {
-      setState(() {
-        loader = false;
-      });
+
+
+      print(response.body);
+      // ignore: nullable_type_in_catch_clause
+    } on SocketException {
+      //  EasyLoading.dismiss();
     }
   }
 }

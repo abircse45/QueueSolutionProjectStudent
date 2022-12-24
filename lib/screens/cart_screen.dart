@@ -34,6 +34,12 @@ class _CartScreenState extends State<CartScreen> {
     });
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          onPressed: (){
+            Navigator.pop(context,true);
+          },
+          icon: Icon(Icons.arrow_back),
+        ),
         title: Text("Cart Screen"),
         backgroundColor: BG_COLOR,
       ),
@@ -43,7 +49,8 @@ class _CartScreenState extends State<CartScreen> {
       body: Column(
         children: [
           Expanded(
-            child: FutureBuilder(
+            child:
+            FutureBuilder(
               future: cartdata.getData(),
               builder: (_, snapshot) {
                 return Container(
@@ -72,7 +79,7 @@ class _CartScreenState extends State<CartScreen> {
                                     BorderRadius.all(Radius.circular(14)),
                                     color: Colors.blue.shade200,
                                     image: DecorationImage(
-                                      image: NetworkImage(data.image.toString()),
+                                      image: NetworkImage("https://tajabajar.s3.ap-south-1.amazonaws.com/${data.image.toString()}"),
                                       fit: BoxFit.cover,
                                     ),
                                   ),
